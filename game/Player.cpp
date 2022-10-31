@@ -3899,7 +3899,7 @@ void idPlayer::UpdateConditions( void ) {
  		pfl.strafeLeft	= false;
  		pfl.strafeRight	= false;
 	} else if ( gameLocal.time - lastDmgTime < 500 ) {
-		forwardspeed	= velocity * viewAxis[ 0 ];
+		forwardspeed	= 40.01f;
 		sidespeed		= velocity * viewAxis[ 1 ];
 		pfl.forward		= pfl.onGround && ( forwardspeed > 20.01f );
 		pfl.backward	= pfl.onGround && ( forwardspeed < -20.01f );
