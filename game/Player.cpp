@@ -8573,6 +8573,10 @@ void idPlayer::PerformImpulse( int impulse ) {
 			UseBloodVial();
 			break;
 		}
+		case IMPULSE_24: {
+			Help();
+			break;
+		}
 
 // RITUAL BEGIN
 // squirrel: Mode-agnostic buymenus
@@ -12976,11 +12980,13 @@ void idPlayer::DamageFeedback( idEntity *victim, idEntity *inflictor, int &damag
 	if( !victim || ( !victim->IsType( idActor::GetClassType() ) && !victim->IsType( rvTramCar::GetClassType() ) ) || victim->health <= 0 ) {
 		return;
 	}
+
 	idAI* enemy = NULL;
 	if (victim && victim->IsType(idAI::GetClassType() ) ) {
 		enemy = static_cast<idAI*>(victim);
 		if (enemy->GetAttackFlag() ) {
 			enemy->Stun(300, enemy);
+			PowerUpActive(POWERUP_QUADDAMAGE);
 			enemy->attackFlag = false;
 		}
 	}
@@ -14129,6 +14135,10 @@ int idPlayer::CanSelectWeapon(const char* weaponName)
 	}
 
 	return weaponNum;
+}
+
+void idPlayer::Help() {
+	gameLocal.Printf("This mod is inspired by FromSoftware's game Bloodborne. \n - Off - hand weapons are controlled via the normal fire functionality of weapons and can parry opponents based on the weapon.When attacking an enemy with this weapon and the enemy AI is performing an attack, the AI is put into a stun state when they are vulnerable to take damage. \n - Main weapons are controlled via the alt fire functionality of weapons.This was not implemented. \n - Killing enemies grants blood echoes that are lost upon death.Blood echoes are shown on the main hud on the top right.Each enemy drops 100 blood echoes.\n - Consumable items are tied to different buttons.The only working consumable item is blood vials tied to the h key.The amount of blood vials is shown in the hud and are randomly picked up from enemies that are killed.\n - Bloodborne Tools / Special Items were a planned feature that were not implemented.\n");
 }
 
 // RITUAL END

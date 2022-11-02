@@ -799,6 +799,7 @@ public:
 	void					GiveBloodVial();
 	int						GetBloodVial();
 	void					UseBloodVial();
+	void Help();
 // RITUAL END
 
 protected:
