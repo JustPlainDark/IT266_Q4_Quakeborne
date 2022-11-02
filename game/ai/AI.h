@@ -145,6 +145,7 @@ typedef struct rvAICombat_s{
 	float					aggressiveRange;			// Range to become more aggressive
 	float					aggressiveScale;			// Scale to use when altering numbers due to aggression
  	int						investigateTime;
+	int						stunnedAtTime;
 
 	float					visStandHeight;				// Height to check enemy visibiliy while standing
 	float					visCrouchHeight;			// Height to check enemy visiblity while crouching
@@ -788,6 +789,7 @@ public:
 	void					BecomeSolid						( void );
 	void					BecomeNonSolid					( void );
 	const char *			ChooseAnim						( int channel, const char *animname );
+	void					Stun							( int time, idAI* enemy );
 
 	//
 	// ai/ai_events.cpp
@@ -869,6 +871,9 @@ public:
 	idEntityPtr<rvAIHelper>	helperIdeal;
 	idEntityPtr<idActor>	leader;
 	idEntityPtr<rvSpawner>	spawner;
+
+	bool attackFlag;
+	bool GetAttackFlag();
 
 	bool						ValidateCover					( void );
 

@@ -92,6 +92,7 @@ idAI::idAI ( void ) {
  	combat.tacticalFlinches			= 0;
  	combat.investigateTime			= 0;
  	combat.aggressiveScale			= 1.0f;
+	combat.stunnedAtTime			= 0;
 
 	passive.animFidgetPrefix.Clear ( );
 	passive.animIdlePrefix.Clear ( );
@@ -139,6 +140,8 @@ idAI::idAI ( void ) {
 	actionAnimNum	= 0;
 	actionSkipTime	= 0;
 	actionTime		= 0;
+
+	attackFlag = false;
 }
 
 /*
@@ -1669,6 +1672,18 @@ void idAI::Killed( idEntity *inflictor, idEntity *attacker, int damage, const id
 		gameLocal.AlertAI( ( idActor * )attacker );
 	}
 
+	idPlayer* killer = NULL;
+	if (attacker && attacker->IsType(idPlayer::GetClassType())) {
+		killer = static_cast<idPlayer*>(attacker);
+		killer->GiveBloodEchoes(100);
+		gameLocal.Printf("Blood Echoes: '%i'\n", killer->GetBloodEchoes());
+		float itemDrop = rvRandom::flrand();
+		if (itemDrop <= .33) {
+			killer->GiveBloodVial();
+		}
+	}
+
+
 	// activate targets
 	ActivateTargets( this );
 
@@ -2472,7 +2487,7 @@ bool idAI::Attack ( const char* attackName, jointHandle_t joint, idEntity* targe
 	if ( !attackDict ) {
 		gameLocal.Error ( "could not find attack entityDef 'def_attack_%s (%s)' on AI entity %s", attackName, spawnArgs.GetString ( va("def_attack_%s", attackName ) ), GetName ( ) );
 	}
-
+	attackFlag = true;
 	// Melee Attack?
 	if ( spawnArgs.GetBool ( va("attack_%s_melee", attackName ), "0" ) ) {
 		return AttackMelee ( attackName, attackDict );
@@ -2520,6 +2535,7 @@ idProjectile* idAI::AttackRanged (
 	attack_hitscan		= spawnArgs.GetBool ( va("attack_%s_hitscan", attackName ), "0" );
 	attack_predict		= spawnArgs.GetFloat ( va("attack_%s_predict", attackName ), "0" );
 	attack_pullback		= spawnArgs.GetFloat ( va("attack_%s_pullback", attackName ), "0" );
+
 
 	// Get the muzzle origin and axis from the given launch joint
 	GetMuzzle( joint, muzzleOrigin, muzzleAxis );
@@ -2648,7 +2664,6 @@ idProjectile* idAI::AttackRanged (
 	if ( enemy.ent && enemy.ent->IsType ( idAI::GetClassType() ) ) {
 		static_cast<idAI*>(enemy.ent.GetEntity())->ReactToShotAt ( this, muzzleOrigin, axis[0] );
 	}
-
 	return lastProjectile;
 }
 
@@ -2875,7 +2890,6 @@ bool idAI::AttackMelee ( const char *attackName, const idDict* meleeDict ) {
 	}
 
 	lastAttackTime = gameLocal.time;
-
 	return true;
 }
 
@@ -3561,6 +3575,18 @@ const char *idAI::ChooseAnim( int channel, const char *animname ) {
 	}
 
 	return "";
+}
+
+void idAI::Stun(int time, idAI* enemy)
+{
+	combat.stunnedAtTime = gameLocal.time;
+	int stopStun = combat.stunnedAtTime + time;
+
+	enemy->move.fl.disabled = true;
+	enemy->aifl.disableAttacks = true;
+	
+	combat.stunnedAtTime = 0;
+	stopStun = 0;
 }
 
 /*
@@ -5148,4 +5174,8 @@ bool idAI::CheckDeathCausesMissionFailure( void )
 		}
 	}
 	return false;
+}
+
+bool idAI::GetAttackFlag() {
+	return attackFlag;
 }

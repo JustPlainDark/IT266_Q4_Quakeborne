@@ -794,6 +794,11 @@ public:
 	void					ClampCash( float minCash, float maxCash );
 	void					SetCash( float newCashAmount );
 	void					ResetCash();
+	void					GiveBloodEchoes(int bloodEchoAmnt);
+	int						GetBloodEchoes();
+	void					GiveBloodVial();
+	int						GetBloodVial();
+	void					UseBloodVial();
 // RITUAL END
 
 protected:
@@ -1155,14 +1160,8 @@ private:
 	stateResult_t			State_Legs_Dead					( const stateParms_t& parms );
 	
  	CLASS_STATES_PROTOTYPE( idPlayer );
-	int bldEch;
-	int lvl;
-	int vit;
-	int str;
-	int skl;
-	int arc;
-	int endu;
-	int bldTng;
+	int bloodEchoes;
+	int bloodVials;
 };
 
 ID_INLINE bool idPlayer::IsBeingTalkedTo( void ) {

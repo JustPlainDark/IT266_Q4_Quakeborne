@@ -1103,6 +1103,8 @@ idPlayer::idPlayer() {
 	lastSavingThrowTime		= 0;
 
 	weapon					= NULL;
+	bloodEchoes				= 0;
+	bloodVials				= 5;
 
 	hud						= NULL;
 	mphud					= NULL;
@@ -8567,6 +8569,10 @@ void idPlayer::PerformImpulse( int impulse ) {
 			idFuncRadioChatter::RepeatLast();
 			break;
 		}
+		case IMPULSE_23: {
+			UseBloodVial();
+			break;
+		}
 
 // RITUAL BEGIN
 // squirrel: Mode-agnostic buymenus
@@ -9169,6 +9175,7 @@ void idPlayer::UpdateHud( void ) {
 
 	// FIXME: this is here for level ammo balancing to see pct of hits 
 	hud->SetStateInt( "g_showProjectilePct", g_showProjectilePct.GetInteger() );
+	hud->SetStateInt("bloodVials", GetBloodVial());
 	if ( numProjectilesFired ) {
 		hud->SetStateString( "projectilepct", va( "Hit %% %.1f", ( (float) numProjectileHits / numProjectilesFired ) * 100 ) );
 	} else {
@@ -9180,6 +9187,9 @@ void idPlayer::UpdateHud( void ) {
  	} else {
  		hud->SetStateString( "hudLag", "0" );
  	}
+	if (bloodEchoes) {
+		hud->SetStateInt("bloodEchoes", GetBloodEchoes());
+	}
 }
 
 /*
@@ -9752,6 +9762,7 @@ void idPlayer::Killed( idEntity *inflictor, idEntity *attacker, int damage, cons
 			{
 				/// Remove the player's armor
 				inventory.armor = 0;
+				
 
 				/// Preserve this player's weapons at the state of his death, to be restored on respawn
 				carryOverCurrentWeapon = currentWeapon;
@@ -9935,6 +9946,9 @@ void idPlayer::Killed( idEntity *inflictor, idEntity *attacker, int damage, cons
 			statManager->FlagDropped( this, attacker );
 		}
 	}
+
+	/// Remove the player's blood echoes
+	bloodEchoes = 0;
 
 	DropPowerups();	
 
@@ -12962,6 +12976,14 @@ void idPlayer::DamageFeedback( idEntity *victim, idEntity *inflictor, int &damag
 	if( !victim || ( !victim->IsType( idActor::GetClassType() ) && !victim->IsType( rvTramCar::GetClassType() ) ) || victim->health <= 0 ) {
 		return;
 	}
+	idAI* enemy = NULL;
+	if (victim && victim->IsType(idAI::GetClassType() ) ) {
+		enemy = static_cast<idAI*>(victim);
+		if (enemy->GetAttackFlag() ) {
+			enemy->Stun(300, enemy);
+			enemy->attackFlag = false;
+		}
+	}
 
 	bool armorHit = false;
 
@@ -14051,6 +14073,38 @@ void idPlayer::ResetCash()
 	float maxCash = (float) gameLocal.serverInfo.GetInt("si_buyModeMaxCredits");
 	buyMenuCash = (float) gameLocal.serverInfo.GetInt("si_buyModeStartingCredits");
 	ClampCash( minCash, maxCash );
+}
+
+void idPlayer::GiveBloodEchoes(int bloodEchoAmnt)
+{
+	bloodEchoes += bloodEchoAmnt;
+}
+
+int idPlayer::GetBloodEchoes() {
+	return bloodEchoes;
+}
+
+void idPlayer::GiveBloodVial()
+{
+	bloodVials++;
+}
+
+int idPlayer::GetBloodVial()
+{
+	return bloodVials;
+}
+
+void idPlayer::UseBloodVial()
+{
+	if (bloodVials != 0) {
+		if (health < 75) {
+			health += 25;
+		}
+		else {
+			health = 100;
+		}
+		bloodVials--;
+	}
 }
 
 /**
